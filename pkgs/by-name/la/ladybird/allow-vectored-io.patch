@@ -1,0 +1,32 @@
+Allow readv on existing file descriptors. RequestServer was observed
+terminating when this syscall was rejected by its seccomp policy.
+
+--- a/Libraries/LibSandbox/Seccomp.cpp
++++ b/Libraries/LibSandbox/Seccomp.cpp
+@@ -150,6 +150,7 @@
+ #define IF_DEFINED_read(if_defined, if_not_defined) if_defined
+ #define IF_DEFINED_readlink(if_defined, if_not_defined) if_defined
+ #define IF_DEFINED_readlinkat(if_defined, if_not_defined) if_defined
++#define IF_DEFINED_readv(if_defined, if_not_defined) if_defined
+ #define IF_DEFINED_rename(if_defined, if_not_defined) if_defined
+ #define IF_DEFINED_renameat(if_defined, if_not_defined) if_defined
+ #define IF_DEFINED_renameat2(if_defined, if_not_defined) if_defined
+@@ -381,6 +382,10 @@
+ #    undef IF_DEFINED_readlinkat
+ #    define IF_DEFINED_readlinkat(if_defined, if_not_defined) if_not_defined
+ #endif
++#ifndef __NR_readv
++#    undef IF_DEFINED_readv
++#    define IF_DEFINED_readv(if_defined, if_not_defined) if_not_defined
++#endif
+ #ifndef __NR_rename
+ #    undef IF_DEFINED_rename
+ #    define IF_DEFINED_rename(if_defined, if_not_defined) if_not_defined
+@@ -910,6 +915,7 @@
+ void SeccompPolicy::allow_file_descriptor_operations()
+ {
+     SECCOMP_APPEND_ALLOW_SYSCALL_IF_DEFINED(*this, read);
++    SECCOMP_APPEND_ALLOW_SYSCALL_IF_DEFINED(*this, readv);
+     SECCOMP_APPEND_ALLOW_SYSCALL_IF_DEFINED(*this, write);
+     SECCOMP_APPEND_ALLOW_SYSCALL_IF_DEFINED(*this, close);
+     SECCOMP_APPEND_ALLOW_SYSCALL_IF_DEFINED(*this, fstat);
