@@ -1,0 +1,41 @@
+--- a/Jellyfin2Samsung-CrossOS/Services/UpdaterService.cs
++++ b/Jellyfin2Samsung-CrossOS/Services/UpdaterService.cs
+@@ -347,36 +347,8 @@
+         /// <inheritdoc />
+         public bool IsAutomaticUpdateSupported()
+         {
+-            var appDir = AppContext.BaseDirectory;
+-
+-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+-            {
+-                // MSI installs into Program Files, which requires elevation to overwrite.
+-                var programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+-                var programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+-                if (IsUnderDirectory(appDir, programFiles) || IsUnderDirectory(appDir, programFilesX86))
+-                    return false;
+-            }
+-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+-            {
+-                // An AppImage runs from a read-only squashfs mount, and the thing a user would want
+-                // replaced is the .AppImage file itself, not this directory — so there is nothing here
+-                // to update in place. The runtime sets APPIMAGE to that file's path (#589).
+-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPIMAGE")))
+-                    return false;
+-
+-                // .deb / .rpm installs land under package-manager-owned locations.
+-                if (IsUnderDirectory(appDir, "/usr") || IsUnderDirectory(appDir, "/opt"))
+-                    return false;
+-            }
+-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+-            {
+-                // Running from inside a .app bundle: the flat-folder replace logic does not apply.
+-                if (appDir.Contains(".app/Contents/", StringComparison.OrdinalIgnoreCase))
+-                    return false;
+-            }
+-
+-            return true;
++            // Updates are managed by Nix on all platforms.
++            return false;
+         }
+ 
+         private static bool IsUnderDirectory(string path, string? baseDir)
