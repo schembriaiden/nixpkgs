@@ -1,6 +1,8 @@
 {
+  lib,
   steam,
   heroic-unwrapped,
+  extraCompatPackages ? [ ],
   extraPkgs ? pkgs: [ ],
   extraLibraries ? pkgs: [ ],
   extraEnv ? { },
@@ -13,7 +15,12 @@ steam.buildRuntimeEnv {
   runScript = "heroic";
 
   extraPkgs = pkgs: [ heroic-unwrapped ] ++ extraPkgs pkgs;
-  inherit extraLibraries extraEnv;
+  inherit extraLibraries;
+  extraEnv =
+    lib.optionalAttrs (extraCompatPackages != [ ]) {
+      STEAM_EXTRA_COMPAT_TOOLS_PATHS = lib.makeSearchPathOutput "steamcompattool" "" extraCompatPackages;
+    }
+    // extraEnv;
 
   extraInstallCommands = ''
     mkdir -p $out/share

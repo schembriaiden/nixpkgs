@@ -245,6 +245,7 @@
   ./programs/gpu-screen-recorder.nix
   ./programs/haguichi.nix
   ./programs/hamster.nix
+  ./programs/heroic.nix
   ./programs/htop.nix
   ./programs/i3lock.nix
   ./programs/iay.nix
