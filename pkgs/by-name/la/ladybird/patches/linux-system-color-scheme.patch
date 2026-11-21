@@ -1,0 +1,18 @@
+Use the system appearance tracked through the settings portal for websites
+on Linux. Qt platform themes can report a different appearance from the portal.
+SystemAppearance::changed already updates the color scheme sent to the Hub.
+
+--- a/UI/Qt/Application.cpp
++++ b/UI/Qt/Application.cpp
+@@ -1291,7 +1291,11 @@
+ // The widgets' palette follows the interface theme, and the system's appearance when the theme follows the system.
+ Web::CSS::PreferredColorScheme Application::interface_color_scheme() const
+ {
++#if defined(AK_OS_LINUX)
++    return SystemAppearance::the().prefers_dark() ? Web::CSS::PreferredColorScheme::Dark : Web::CSS::PreferredColorScheme::Light;
++#else
+     return Theme::is_dark() ? Web::CSS::PreferredColorScheme::Dark : Web::CSS::PreferredColorScheme::Light;
++#endif
+ }
+ 
+ // Bookmarking the page from the menu or its shortcut does what the star in the address field does.

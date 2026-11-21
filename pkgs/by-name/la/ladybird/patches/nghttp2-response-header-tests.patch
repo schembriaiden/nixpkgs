@@ -1,0 +1,45 @@
+Update the session tests for Ladybird's response-header compatibility patch.
+Connection-specific response fields are now ignored instead of resetting the
+stream. Keep checking that the same fields are rejected in requests, and make
+a missing expected reset fail an assertion instead of dereferencing NULL.
+
+--- a/tests/nghttp2_session_test.c
++++ b/tests/nghttp2_session_test.c
+@@ -10776,6 +10776,7 @@
+ 
+   item = nghttp2_session_get_next_ob_item(session);
+ 
++  assert_not_null(item);
+   assert_uint8(NGHTTP2_RST_STREAM, ==, item->frame.hd.type);
+   assert_ptrdiff(1, ==, ud.invalid_frame_recv_cb_called);
+ 
+@@ -10875,9 +10876,14 @@
+     MAKE_NV("content-length", "0"),
+     MAKE_NV("content-length", "0"),
+   };
+-  static const nghttp2_nv badhd_resnv[] = {
++  static const nghttp2_nv ignoredhd_resnv[] = {
+     MAKE_NV(":status", "200"),
+     MAKE_NV("connection", "close"),
++    MAKE_NV("keep-alive", "timeout=5"),
++    MAKE_NV("proxy-connection", "keep-alive"),
++    MAKE_NV("transfer-encoding", "chunked"),
++    MAKE_NV("upgrade", "websocket"),
++    MAKE_NV("te", "gzip"),
+   };
+   static const nghttp2_nv cl1xx_resnv[] = {
+     MAKE_NV(":status", "100"),
+@@ -11039,9 +11045,10 @@
+   check_nghttp2_http_recv_headers_fail(opts, NGHTTP2_STREAM_OPENING,
+                                        dupcl_resnv, ARRLEN(dupcl_resnv));
+ 
+-  /* response header has disallowed header field */
+-  check_nghttp2_http_recv_headers_fail(opts, NGHTTP2_STREAM_OPENING,
+-                                       badhd_resnv, ARRLEN(badhd_resnv));
++  /* Connection-specific response fields are ignored for browser compatibility,
++     rather than causing the stream to fail. Requests remain strict below. */
++  check_nghttp2_http_recv_headers_ok(opts, NGHTTP2_STREAM_OPENING,
++                                     ignoredhd_resnv, ARRLEN(ignoredhd_resnv));
+ 
+   /* response header has content-length with 100 status code */
+   check_nghttp2_http_recv_headers_fail(opts, NGHTTP2_STREAM_OPENING,
